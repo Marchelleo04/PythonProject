@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CurhatBot</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #676767;
+            margin: 0;
+            padding: 0;
+        }
+        .chat-container {
+            width: 500px;
+            margin: 50px auto;
+            background-color: #454545;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        }
+        .chat-box {
+            height: 400px;
+            overflow-y: scroll;
+            border: 2px solid #ffffff;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .chat-input {
+            width: calc(100% - 50px);
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .chat-button {
+            padding: 10px;
+            border: none;
+            background-color: #565656;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        .chat-button:hover {
+            background-color: #383838;
+        }
+        .user-message {
+            text-align: right;
+            color: #ffffff;
+            margin: 10px 0;
+        }
+        .bot-message {
+            text-align: left;
+            color: #ffffff;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box"></div>
+        <input type="text" class="chat-input" id="chat-input" placeholder="Type a message...">
+        <button class="chat-button" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        function appendMessage(message, className) {
+            const chatBox = document.getElementById('chat-box');
+            const messageElement = document.createElement('div');
+            messageElement.className = className;
+            messageElement.innerText = message;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const userMessage = chatInput.value;
+            if (userMessage.trim() === '') return;
+
+            appendMessage(`User: ${userMessage}`, 'user-message');
+            chatInput.value = '';
+
+            fetch('/get_response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: userMessage }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                appendMessage(`CurhatBot: ${data.response}`, 'bot-message');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                appendMessage('CurhatBot: I encountered an error. Please try again later.', 'bot-message');
+            });
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
